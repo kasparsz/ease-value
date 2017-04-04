@@ -1,0 +1,8 @@
+*.DS_Store
+*.DS_store
+*.sublime-*
+.vscode
+_gh_pages
+bower_components
+node_modules
+npm-debug.log

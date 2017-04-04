@@ -1,0 +1,31 @@
+{
+  "name": "ease-value",
+  "description": "Value easing component which animates single value continuously",
+  "version": "1.0.0",
+  "homepage": "https://github.com/kasparsz/ease-value",
+  "repository": "kasparsz/ease-value",
+  "bugs": {
+    "url": "https://github.com/kasparsz/ease-value/issues"
+  },
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "author": "Kaspars Zuks (https://github.com/kasparsz)",
+  "license": "MIT",
+  "files": [
+    "dist/ease-value.js"
+  ],
+  "main": "dist/ease-value.js",
+  "scripts": {
+    "prepublish": "buble src/index.js -o dist/ease-value.js --yes destructuring,spreadRest --objectAssign Object.assign --no modules",
+    "test": "mocha"
+  },
+  "keywords": [
+    "jquery",
+    "plugin"
+  ],
+  "devDependencies": {
+    "buble": "^0.15.2",
+    "mocha": "^2.4.5"
+  }
+}
