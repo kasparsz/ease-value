@@ -1,7 +1,7 @@
 {
   "name": "ease-value",
   "description": "Value easing component which animates single value continuously",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "homepage": "https://github.com/kasparsz/ease-value",
   "repository": "kasparsz/ease-value",
   "bugs": {

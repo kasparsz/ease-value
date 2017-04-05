@@ -164,8 +164,8 @@ class EaseValue {
             const isComplete = Math.abs(valueTarget - value) < precision;
 
             // Save value
-            this.valueRaw = value;
-            this.value = Math.round(value / precision) * precision;
+            this.valueRaw = isComplete ? valueTarget : value;
+            this.value = Math.round(this.valueRaw / precision) * precision;
 
             // If there was a change or this is the first call then we trigger
             // step event. We want to do it on first call to make sure 'step' is
