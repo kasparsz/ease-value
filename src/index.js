@@ -211,7 +211,7 @@ EaseValue.defaultEasing = 'easeOut';
 
 
 EaseValue.easings = {
-    'easeOut': function (ease) {
+    'easeOut': function (ease, tdelta) {
         const delta = (ease.valueTarget - ease.valueRaw);
         const force = ease.options.force * tdelta / 16;
 
