@@ -53,7 +53,7 @@ function updateDemoBoxPosition (value) {
 | -------- | ------- | ---------------------------------------- | -------- |
 | ```force```    | Number | Amount of force used for animation / animation speed. Smaller the value, slower the animation will be | ```0.1```     |
 | ```precision``` | Number | To prevent unneeded ```step``` event calls and to allow detecting animation end faster, animation value is rounded to this precision. For example with default precision, value between steps will not change by less than 0.01 | ```0.01``` |
-| ```easing``` | String | Easing name, currently there is only one easing | ```"easeOut"``` |
+| ```easing``` | String | Easing name, currently there is ```easeOut``` and ```linear``` easings | ```"easeOut"``` |
 | ```value``` | Number | Initial value, optional. If initial value is not provided, then it will be set when calling ```to``` or ```reset``` for first time | null |
 
 ### `on(eventName, callback)`

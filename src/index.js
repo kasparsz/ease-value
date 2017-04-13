@@ -5,6 +5,15 @@
  * Licensed under the MIT License.
  */
 
+
+const timing = (function () {
+    if (typeof performance !== 'undefined') {
+        return performance;
+    } else {
+        return Date;
+    }
+})();
+
 class EaseValue {
 
     static get Defaults () {
@@ -29,6 +38,7 @@ class EaseValue {
 
         this.hasInitialValueSet = false;
         this.isRunning = false;
+        this.time = null;
 
         this.stepBinded = this.step.bind(this);
 
@@ -64,6 +74,8 @@ class EaseValue {
             this.valueTarget = value;
 
             if (!this.isRunning) {
+                this.time = timing.now();
+
                 // Trigger 'start' event
                 this.trigger('start');
                 this.step();
@@ -86,6 +98,7 @@ class EaseValue {
             this.valueRaw = this.valueInitial = this.valueTarget = value;
             this.value = Math.round(value / precision) * precision;
             this.hasInitialValueSet = true;
+            this.time = timing.now();
 
             this.trigger('start');
             this.trigger('step');
@@ -155,9 +168,11 @@ class EaseValue {
 
         if (this.hasInitialValueSet) {
             const valueTarget = this.valueTarget;
+            const time = timing.now();
+            const tdelta = time - this.time;
 
             // Calculate new value
-            const value = easing.call(this, this);
+            const value = easing.call(this, this, tdelta);
             const delta = value - this.valueRaw;
 
             // Animation is considered to be complete when it would be complete in
@@ -167,6 +182,7 @@ class EaseValue {
             // Save value
             this.valueRaw = isComplete ? valueTarget : value;
             this.value = Math.round(this.valueRaw / precision) * precision;
+            this.time = time;
 
             // If there was a change or this is the first call then we trigger
             // step event. We want to do it on first call to make sure 'step' is
@@ -196,7 +212,25 @@ EaseValue.defaultEasing = 'easeOut';
 
 EaseValue.easings = {
     'easeOut': function (ease) {
-        return ease.valueRaw + (ease.valueTarget - ease.valueRaw) * ease.options.force;
+        const delta = (ease.valueTarget - ease.valueRaw);
+        const force = ease.options.force * tdelta / 16;
+
+        if (delta > 0) {
+            return Math.min(ease.valueTarget, ease.valueRaw + delta * force);
+        } else {
+            return Math.max(ease.valueTarget, ease.valueRaw - delta * force);
+        }
+    },
+
+    'linear': function (ease, tdelta) {
+        const delta = (ease.valueTarget - ease.valueRaw);
+        const force = ease.options.force * tdelta / 16;
+
+        if (delta > 0) {
+            return Math.min(ease.valueTarget, ease.valueRaw + force);
+        } else {
+            return Math.max(ease.valueTarget, ease.valueRaw - force);
+        }
     }
 };
 

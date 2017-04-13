@@ -5,6 +5,15 @@
  * Licensed under the MIT License.
  */
 
+
+var timing = (function () {
+    if (typeof performance !== 'undefined') {
+        return performance;
+    } else {
+        return Date;
+    }
+})();
+
 var EaseValue = function EaseValue (opts) {
     if ( opts === void 0 ) opts = {};
 
@@ -19,6 +28,7 @@ var EaseValue = function EaseValue (opts) {
 
     this.hasInitialValueSet = false;
     this.isRunning = false;
+    this.time = null;
 
     this.stepBinded = this.step.bind(this);
 
@@ -65,6 +75,8 @@ EaseValue.prototype.to = function to (value) {
         this.valueTarget = value;
 
         if (!this.isRunning) {
+            this.time = timing.now();
+
             // Trigger 'start' event
             this.trigger('start');
             this.step();
@@ -87,6 +99,7 @@ EaseValue.prototype.reset = function reset (value) {
         this.valueRaw = this.valueInitial = this.valueTarget = value;
         this.value = Math.round(value / precision) * precision;
         this.hasInitialValueSet = true;
+        this.time = timing.now();
 
         this.trigger('start');
         this.trigger('step');
@@ -156,9 +169,11 @@ EaseValue.prototype.step = function step () {
 
     if (this.hasInitialValueSet) {
         var valueTarget = this.valueTarget;
+        var time = timing.now();
+        var tdelta = time - this.time;
 
         // Calculate new value
-        var value = easing.call(this, this);
+        var value = easing.call(this, this, tdelta);
         var delta = value - this.valueRaw;
 
         // Animation is considered to be complete when it would be complete in
@@ -168,6 +183,7 @@ EaseValue.prototype.step = function step () {
         // Save value
         this.valueRaw = isComplete ? valueTarget : value;
         this.value = Math.round(this.valueRaw / precision) * precision;
+        this.time = time;
 
         // If there was a change or this is the first call then we trigger
         // step event. We want to do it on first call to make sure 'step' is
@@ -197,7 +213,25 @@ EaseValue.defaultEasing = 'easeOut';
 
 EaseValue.easings = {
     'easeOut': function (ease) {
-        return ease.valueRaw + (ease.valueTarget - ease.valueRaw) * ease.options.force;
+        var delta = (ease.valueTarget - ease.valueRaw);
+        var force = ease.options.force * tdelta / 16;
+
+        if (delta > 0) {
+            return Math.min(ease.valueTarget, ease.valueRaw + delta * force);
+        } else {
+            return Math.max(ease.valueTarget, ease.valueRaw - delta * force);
+        }
+    },
+
+    'linear': function (ease, tdelta) {
+        var delta = (ease.valueTarget - ease.valueRaw);
+        var force = ease.options.force * tdelta / 16;
+
+        if (delta > 0) {
+            return Math.min(ease.valueTarget, ease.valueRaw + force);
+        } else {
+            return Math.max(ease.valueTarget, ease.valueRaw - force);
+        }
     }
 };
 
