@@ -218,7 +218,7 @@ EaseValue.easings = {
         if (delta > 0) {
             return Math.min(ease.valueTarget, ease.valueRaw + delta * force);
         } else {
-            return Math.max(ease.valueTarget, ease.valueRaw - delta * force);
+            return Math.max(ease.valueTarget, ease.valueRaw + delta * force);
         }
     },
 
