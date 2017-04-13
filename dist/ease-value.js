@@ -150,8 +150,9 @@ EaseValue.prototype.step = function step () {
     var precision = this.options.precision;
     var easing = EaseValue.easings[this.options.easing];
     var firstRun = !this.isRunning;
+    var   running;
 
-    this.isRunning = true;
+    this.isRunning = running = true;
 
     if (this.hasInitialValueSet) {
         var valueTarget = this.valueTarget;
@@ -176,12 +177,12 @@ EaseValue.prototype.step = function step () {
         }
 
         if (isComplete) {
-            this.isRunning = false;
+            this.isRunning = running = false;
             this.trigger('stop');
         }
     }
 
-    if (this.isRunning) {
+    if (running) {
         requestAnimationFrame(this.stepBinded);
     }
 };

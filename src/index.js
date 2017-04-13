@@ -149,8 +149,9 @@ class EaseValue {
         const precision = this.options.precision;
         const easing = EaseValue.easings[this.options.easing];
         const firstRun = !this.isRunning;
+        let   running;
 
-        this.isRunning = true;
+        this.isRunning = running = true;
 
         if (this.hasInitialValueSet) {
             const valueTarget = this.valueTarget;
@@ -175,12 +176,12 @@ class EaseValue {
             }
 
             if (isComplete) {
-                this.isRunning = false;
+                this.isRunning = running = false;
                 this.trigger('stop');
             }
         }
 
-        if (this.isRunning) {
+        if (running) {
             requestAnimationFrame(this.stepBinded);
         }
     }
