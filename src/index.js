@@ -45,7 +45,7 @@ class EaseValue {
         }
 
         if (options.value !== null) {
-            this.set(options.value);
+            this.to(options.value);
         }
     }
 
