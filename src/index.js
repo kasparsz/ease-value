@@ -39,6 +39,7 @@ class EaseValue {
         this.hasInitialValueSet = false;
         this.isRunning = false;
         this.time = null;
+        this.timer = null;
 
         this.stepBinded = this.step.bind(this);
 
@@ -56,6 +57,17 @@ class EaseValue {
 
         if (options.value !== null) {
             this.to(options.value);
+        }
+    }
+
+    /**
+     * Destructor
+     */
+    destroy () {
+        this.listeners = this.options = {};
+
+        if (this.timer) {
+            cancelAnimationFrame(this.timer);
         }
     }
 
@@ -198,7 +210,7 @@ class EaseValue {
         }
 
         if (running) {
-            requestAnimationFrame(this.stepBinded);
+            this.timer = requestAnimationFrame(this.stepBinded);
         }
     }
 

@@ -80,6 +80,10 @@ Set value to which animate to. Calling ```to``` for first time if ```value``` op
 
 Set value without using animation, will instantly jump to this value.
 
+### `destroy()`
+
+Removes all listeners, stops animation
+
 
 ## Running tests
 

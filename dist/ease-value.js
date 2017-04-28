@@ -29,6 +29,7 @@ var EaseValue = function EaseValue (opts) {
     this.hasInitialValueSet = false;
     this.isRunning = false;
     this.time = null;
+    this.timer = null;
 
     this.stepBinded = this.step.bind(this);
 
@@ -52,11 +53,7 @@ var EaseValue = function EaseValue (opts) {
 var staticAccessors = { Defaults: {} };
 
 /**
- * Set target value
- *
- * @param {any} valueCurrent
- *
- * @memberOf EaseValue
+ * Destructor
  */
 staticAccessors.Defaults.get = function () {
     return {
@@ -67,6 +64,21 @@ staticAccessors.Defaults.get = function () {
     };
 };
 
+EaseValue.prototype.destroy = function destroy () {
+    this.listeners = this.options = {};
+
+    if (this.timer) {
+        cancelAnimationFrame(this.timer);
+    }
+};
+
+/**
+ * Set target value
+ *
+ * @param {any} valueCurrent
+ *
+ * @memberOf EaseValue
+ */
 EaseValue.prototype.to = function to (value) {
     if (!this.hasInitialValueSet) {
         this.reset(value);
@@ -199,7 +211,7 @@ EaseValue.prototype.step = function step () {
     }
 
     if (running) {
-        requestAnimationFrame(this.stepBinded);
+        this.timer = requestAnimationFrame(this.stepBinded);
     }
 };
 
