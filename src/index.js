@@ -14,27 +14,83 @@ const timing = (function () {
     }
 })();
 
-class EaseValue {
+
+/**
+ * Event listener mixin with .on, .off and .trigger functionality
+ */
+class Events {
+
+    constructor () {
+        this.listeners = {};
+    }
+
+    /**
+     * Add event listener
+     *
+     * @param {string} eventName
+     * @param {function} callback
+     */
+    on (eventName, callback) {
+        const listeners = this.listeners;
+
+        if (typeof callback === 'function') {
+            listeners[eventName] = listeners[eventName] || [];
+            listeners[eventName].push(callback);
+        }
+    }
+
+    /**
+     * Remove event listener
+     *
+     * @param {string} eventName
+     * @param {function} callback
+     */
+    off (eventName, callback) {
+        const callbacks = this.listeners[eventName];
+        const index     = callbacks ? callbacks.indexOf(callback) : -1;
+
+        if (index !== -1) {
+            callbacks.splice(index, 1);
+        }
+    }
+
+    /**
+     * Trigger event listeners
+     *
+     * @param {string} eventName
+     * @protected
+     */
+    trigger (eventName, value) {
+        const callbacks = this.listeners[eventName];
+
+        for (let i = 0, ii = callbacks ? callbacks.length : 0; i < ii; i++) {
+            callbacks[i](value);
+        }
+    }
+}
+
+
+class EaseValue extends Events {
 
     static get Defaults () {
         return {
             'value': null,
             'force': EaseValue.defaultForce,
             'precision': EaseValue.defaultPrecision,
-            'easing': EaseValue.defaultEasing,
+            'easing': EaseValue.defaultEasing
         };
     }
 
 
     constructor (opts = {}) {
-        const options = this.options = {...this.constructor.Defaults, ...opts};
+        super();
+
+        const options = this.options = Object.assign({}, this.constructor.Defaults, opts);
 
         this.value = null;
         this.valueRaw = null;
         this.valueInitial = null;
         this.valueTarget = null;
-
-        this.listeners = {};
 
         this.hasInitialValueSet = false;
         this.isRunning = false;
@@ -89,7 +145,7 @@ class EaseValue {
                 this.time = timing.now();
 
                 // Trigger 'start' event
-                this.trigger('start');
+                this.trigger('start', this.value);
                 this.step();
             }
         }
@@ -112,54 +168,9 @@ class EaseValue {
             this.hasInitialValueSet = true;
             this.time = timing.now();
 
-            this.trigger('start');
-            this.trigger('step');
-            this.trigger('stop');
-        }
-    }
-
-    /**
-     * Add event listener
-     *
-     * @param {string} eventName
-     * @param {function} callback
-     */
-    on (eventName, callback) {
-        const listeners = this.listeners;
-
-        if (typeof callback === 'function') {
-            listeners[eventName] = listeners[eventName] || [];
-            listeners[eventName].push(callback);
-        }
-    }
-
-    /**
-     * Remove event listener
-     *
-     * @param {string} eventName
-     * @param {function} callback
-     */
-    off (eventName, callback) {
-        const callbacks = this.listeners[eventName];
-        const index     = callbacks ? callbacks.indexOf(callback) : -1;
-
-        if (index !== -1) {
-            callbacks.splice(index, 1);
-        }
-    }
-
-    /**
-     * Trigger event listeners
-     *
-     * @param {string} eventName
-     * @protected
-     */
-    trigger (eventName) {
-        const callbacks = this.listeners[eventName];
-        const value     = this.value;
-
-        for (let i = 0, ii = callbacks ? callbacks.length : 0; i < ii; i++) {
-            callbacks[i](value);
+            this.trigger('start', this.value);
+            this.trigger('step', this.value);
+            this.trigger('stop', this.value);
         }
     }
 
@@ -170,7 +181,6 @@ class EaseValue {
      * @protected
      */
     step () {
-        const force = this.options.force;
         const precision = this.options.precision;
         const easing = EaseValue.easings[this.options.easing];
         const firstRun = !this.isRunning;
@@ -180,12 +190,12 @@ class EaseValue {
 
         if (this.hasInitialValueSet) {
             const valueTarget = this.valueTarget;
+            const valueLast = this.value;
             const time = timing.now();
             const tdelta = time - this.time;
 
             // Calculate new value
             const value = easing.call(this, this, tdelta);
-            const delta = value - this.valueRaw;
 
             // Animation is considered to be complete when it would be complete in
             // less than 1 step
@@ -199,13 +209,15 @@ class EaseValue {
             // If there was a change or this is the first call then we trigger
             // step event. We want to do it on first call to make sure 'step' is
             // called at least once
+            const delta = valueLast - this.value;
+
             if (delta || firstRun) {
-                this.trigger('step');
+                this.trigger('step', this.value);
             }
 
             if (isComplete) {
                 this.isRunning = running = false;
-                this.trigger('stop');
+                this.trigger('stop', this.value);
             }
         }
 
@@ -214,6 +226,123 @@ class EaseValue {
         }
     }
 
+}
+
+
+class EaseValueMultiple extends Events {
+    constructor (easeValues) {
+        super();
+
+        this.easeValues = easeValues;
+        this.keys = Object.keys(easeValues);
+        this.value = this.getValue();
+        this.isRunning = this.getIsRunning();
+        this.reqStart = this.reqStop = this.reqStep = null;
+
+        this.triggerStart = this.triggerStart.bind(this);
+        this.triggerStop = this.triggerStop.bind(this);
+        this.triggerStep = this.triggerStep.bind(this);
+
+        this.keys.forEach(name => {
+            easeValues[name].on('start', this.handleStart.bind(this));
+            easeValues[name].on('stop', this.handleStop.bind(this));
+            easeValues[name].on('step', this.handleStep.bind(this));
+            if (!this[name]) this[name] = easeValues[name];
+        });
+    }
+
+    to (values) {
+        const easeValues = this.easeValues;
+
+        this.keys.forEach(name => {
+            if (name in values) {
+                easeValues[name].to(values[name]);
+            }
+        });
+    }
+
+    reset (values) {
+        const easeValues = this.easeValues;
+
+        this.keys.forEach(name => {
+            if (name in values) {
+                easeValues[name].reset(values[name]);
+            }
+        });
+    }
+
+    getIsRunning () {
+        const easeValues = this.easeValues;
+        const activeEaseValues  = this.keys.filter(name => easeValues[name].isRunning);
+        return activeEaseValues.length > 0;
+    }
+
+    getValue () {
+        const easeValues = this.easeValues;
+        const value = {};
+
+        this.keys.forEach(name => {
+            value[name] = easeValues[name].value;
+        });
+
+        return value;
+    }
+
+    triggerStart () {
+        this.reqStart = null;
+        this.trigger('start', this.value);
+    }
+
+    triggerStop () {
+        this.reqStop = null;
+        this.trigger('stop', this.value);
+    }
+
+    triggerStep () {
+        this.reqStep = null;
+        this.trigger('step', this.value);
+    }
+
+    handleStart () {
+        // Trigger only once, first time
+        if (!this.isRunning) {
+            if (this.reqStart) {
+                cancelAnimationFrame(this.reqStart);
+            }
+
+            this.value = this.getValue();
+            this.isRunning = this.getIsRunning();
+            this.reqStart = requestAnimationFrame(this.triggerStart);
+        }
+    }
+
+    handleStop () {
+        this.isRunning = this.getIsRunning();
+
+        if (!this.isRunning) {
+            if (this.reqStop) {
+                cancelAnimationFrame(this.reqStop);
+            }
+
+            this.value = this.getValue();
+            this.reqStop = requestAnimationFrame(this.triggerStop);
+        }
+    }
+
+    handleStep () {
+        this.value = this.getValue();
+
+        if (!this.reqStep) {
+            this.reqStep = requestAnimationFrame(this.triggerStep);
+        }
+    }
+}
+
+EaseValue.Events = Events;
+EaseValue.EaseValueMultiple = EaseValueMultiple;
+
+EaseValue.multiple = function (params) {
+    return new EaseValueMultiple(params);
 }
 
 
