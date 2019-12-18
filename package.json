@@ -1,7 +1,7 @@
 {
   "name": "ease-value",
   "description": "Value easing component which animates single values continuously",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "homepage": "https://github.com/kasparsz/ease-value",
   "repository": "kasparsz/ease-value",
   "bugs": {
@@ -25,7 +25,7 @@
     "plugin"
   ],
   "devDependencies": {
-    "buble": "^0.15.2",
-    "mocha": "^2.4.5"
+    "buble": "^0.19.8",
+    "mocha": "^6.2.2"
   }
 }

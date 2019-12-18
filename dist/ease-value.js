@@ -67,7 +67,7 @@ Events.prototype.trigger = function trigger (eventName, value) {
 };
 
 
-var EaseValue = (function (Events) {
+var EaseValue = /*@__PURE__*/(function (Events) {
     function EaseValue (opts) {
         if ( opts === void 0 ) opts = {};
 
@@ -108,7 +108,7 @@ var EaseValue = (function (Events) {
     EaseValue.prototype = Object.create( Events && Events.prototype );
     EaseValue.prototype.constructor = EaseValue;
 
-    var staticAccessors = { Defaults: {} };
+    var staticAccessors = { Defaults: { configurable: true } };
 
     /**
      * Destructor
@@ -235,7 +235,7 @@ var EaseValue = (function (Events) {
 }(Events));
 
 
-var EaseValueMultiple = (function (Events) {
+var EaseValueMultiple = /*@__PURE__*/(function (Events) {
     function EaseValueMultiple (easeValues) {
         var this$1 = this;
 
@@ -262,6 +262,29 @@ var EaseValueMultiple = (function (Events) {
     if ( Events ) EaseValueMultiple.__proto__ = Events;
     EaseValueMultiple.prototype = Object.create( Events && Events.prototype );
     EaseValueMultiple.prototype.constructor = EaseValueMultiple;
+
+    EaseValueMultiple.prototype.destroy = function destroy () {
+        var easeValues = this.easeValues;
+
+        if (this.reqStart) {
+            cancelAnimationFrame(this.reqStart);
+        }
+        if (this.reqStop) {
+            cancelAnimationFrame(this.reqStop);
+        }
+        if (this.reqStop) {
+            cancelAnimationFrame(this.reqStop);
+        }
+
+        this.keys.forEach(function (name) {
+            easeValues[name].destroy();
+        });
+
+        this.isRunning = false;
+        this.easeValues = {};
+        this.value = {};
+        this.keys = [];
+    };
 
     EaseValueMultiple.prototype.to = function to (values) {
         var easeValues = this.easeValues;
@@ -367,21 +390,21 @@ EaseValue.defaultEasing = 'easeOut';
 
 EaseValue.easings = {
     'easeOut': function (ease, tdelta) {
-        var delta = (ease.valueTarget - ease.valueRaw);
+        var valueDelta = (ease.valueTarget - ease.valueRaw);
         var force = ease.options.force * tdelta / 16;
 
-        if (delta > 0) {
-            return Math.min(ease.valueTarget, ease.valueRaw + delta * force);
+        if (valueDelta > 0) {
+            return Math.min(ease.valueTarget, ease.valueRaw + valueDelta * force);
         } else {
-            return Math.max(ease.valueTarget, ease.valueRaw + delta * force);
+            return Math.max(ease.valueTarget, ease.valueRaw + valueDelta * force);
         }
     },
 
     'linear': function (ease, tdelta) {
-        var delta = (ease.valueTarget - ease.valueRaw);
+        var valueDelta = (ease.valueTarget - ease.valueRaw);
         var force = ease.options.force * tdelta / 16;
 
-        if (delta > 0) {
+        if (valueDelta > 0) {
             return Math.min(ease.valueTarget, ease.valueRaw + force);
         } else {
             return Math.max(ease.valueTarget, ease.valueRaw - force);
