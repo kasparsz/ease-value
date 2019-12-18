@@ -251,6 +251,29 @@ class EaseValueMultiple extends Events {
         });
     }
 
+    destroy () {
+        const easeValues = this.easeValues;
+
+        if (this.reqStart) {
+            cancelAnimationFrame(this.reqStart);
+        }
+        if (this.reqStop) {
+            cancelAnimationFrame(this.reqStop);
+        }
+        if (this.reqStop) {
+            cancelAnimationFrame(this.reqStop);
+        }
+
+        this.keys.forEach(name => {
+            easeValues[name].destroy();
+        });
+
+        this.isRunning = false;
+        this.easeValues = {};
+        this.value = {};
+        this.keys = [];
+    }
+
     to (values) {
         const easeValues = this.easeValues;
 
@@ -353,21 +376,21 @@ EaseValue.defaultEasing = 'easeOut';
 
 EaseValue.easings = {
     'easeOut': function (ease, tdelta) {
-        const delta = (ease.valueTarget - ease.valueRaw);
+        const valueDelta = (ease.valueTarget - ease.valueRaw);
         const force = ease.options.force * tdelta / 16;
 
-        if (delta > 0) {
-            return Math.min(ease.valueTarget, ease.valueRaw + delta * force);
+        if (valueDelta > 0) {
+            return Math.min(ease.valueTarget, ease.valueRaw + valueDelta * force);
         } else {
-            return Math.max(ease.valueTarget, ease.valueRaw + delta * force);
+            return Math.max(ease.valueTarget, ease.valueRaw + valueDelta * force);
         }
     },
 
     'linear': function (ease, tdelta) {
-        const delta = (ease.valueTarget - ease.valueRaw);
+        const valueDelta = (ease.valueTarget - ease.valueRaw);
         const force = ease.options.force * tdelta / 16;
 
-        if (delta > 0) {
+        if (valueDelta > 0) {
             return Math.min(ease.valueTarget, ease.valueRaw + force);
         } else {
             return Math.max(ease.valueTarget, ease.valueRaw - force);
