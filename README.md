@@ -3,6 +3,8 @@
 [travis-url]: https://travis-ci.org/kasparsz/ease-value
 [travis-image]: http://img.shields.io/travis/kasparsz/ease-value.svg
 
+This project is no longer maintained!
+
 # ease-value
 [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url]
 
